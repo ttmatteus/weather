@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react'
 import StatusBar from './StatusBar'
+import Weather from './Weather'
+import BottomRectangle from './BottomRectangle'
 import SearchPage from './SearchPage'
-
+import { fetchWeatherByCoords } from '../services/weatherService'
+import type { WeatherInfo } from '../models/Weather'
 
 function formatTime(date: Date) {
   return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
 
-interface Props {
-  children?: React.ReactNode;
-}
-
-export default function PhoneShell({ children }: Props) {
+export default function PhoneShell() {
   const [time, setTime]             = useState(() => formatTime(new Date()))
-  // const [weather, setWeather]       = useState<WeatherInfo | null>(null)
-  // const [error, setError]           = useState<string | null>(null)
+  const [weather, setWeather]       = useState<WeatherInfo | null>(null)
+  const [error, setError]           = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
 
   useEffect(() => {
@@ -22,7 +21,21 @@ export default function PhoneShell({ children }: Props) {
     return () => window.clearInterval(id)
   }, [])
 
-  // Removido código morto relacionado a weather/error
+  useEffect(() => {
+    if (!navigator.geolocation) { setError('Geolocalização não suportada.'); return }
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const data = await fetchWeatherByCoords(coords.latitude, coords.longitude)
+          setWeather(data)
+        } catch (err) {
+          setError('Erro ao buscar clima.')
+          console.error(err)
+        }
+      },
+      () => setError('Permissão de localização negada.')
+    )
+  }, [])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[linear-gradient(180deg,#2E335A_0%,#1C1B33_100%)]">
@@ -49,7 +62,7 @@ export default function PhoneShell({ children }: Props) {
             boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)',
           }}
         >
-          {/* Dynamic Island — sempre por cima de tudo */}
+          {/* Dynamic Island */}
           <div
             style={{
               position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
@@ -63,7 +76,7 @@ export default function PhoneShell({ children }: Props) {
             </div>
           </div>
 
-          {/* StatusBar — sempre por cima de tudo */}
+          {/* StatusBar */}
           <div style={{ position: 'relative', zIndex: 200 }}>
             <StatusBar time={time} />
           </div>
@@ -85,7 +98,12 @@ export default function PhoneShell({ children }: Props) {
               transition: searchOpen ? 'opacity 0.6s cubic-bezier(0.32,0.72,0,1)' : 'opacity 0s',
               zIndex: 30, pointerEvents: 'none',
             }} />
-            {children}
+            <Weather weather={weather} error={error} />
+            <BottomRectangle
+              hourly={weather?.hourly ?? []}
+              daily={weather?.daily ?? []}
+              onSearchOpen={() => setSearchOpen(true)}
+            />
           </div>
 
           {/* SearchPage */}
@@ -97,7 +115,7 @@ export default function PhoneShell({ children }: Props) {
             transition:   'transform 0.6s cubic-bezier(0.32,0.72,0,1)',
             zIndex:       50,
           }}>
-            <SearchPage onClose={() => setSearchOpen(false)} weather={null} />
+            <SearchPage onClose={() => setSearchOpen(false)} weather={weather} />
           </div>
         </div>
       </div>
