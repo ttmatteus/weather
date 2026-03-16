@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { formatTemp, getLocalIcon, formatHour } from '../models/Weather'
 import type { HourlyForecast } from '../models/Weather'
 

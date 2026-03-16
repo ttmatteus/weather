@@ -39,12 +39,17 @@ export async function fetchWeatherByCity(city: string): Promise<WeatherInfo> {
   const weatherData = await oneCallRes.json()
   const current = weatherData.current
 
-  return {
-    name: `${place.name}${place.state ? `, ${place.state}` : ''}${place.country ? `, ${place.country}` : ''}`,
-    temp: current.temp,
-    description: current.weather?.[0]?.description ?? '—',
-    humidity: current.humidity,
-    windSpeed: current.wind_speed,
-    icon: current.weather?.[0]?.icon ?? '01d',
-  }
+    return {
+      name: `${place.name}${place.state ? `, ${place.state}` : ''}${place.country ? `, ${place.country}` : ''}`,
+      temp: current.temp,
+      description: current.weather?.[0]?.description ?? '—',
+      humidity: current.humidity,
+      windSpeed: current.wind_speed,
+      icon: current.weather?.[0]?.icon ?? '01d',
+      feelsLike: current.feels_like ?? null,
+      tempMax: current.temp_max ?? null,
+      tempMin: current.temp_min ?? null,
+      hourly: [],
+      daily: [],
+    }
 }

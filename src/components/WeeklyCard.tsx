@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { formatTemp, getLocalIcon, formatWeekDay } from '../models/Weather'
 import type { DailyForecast } from '../models/Weather'
 

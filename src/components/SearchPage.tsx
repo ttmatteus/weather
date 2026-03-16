@@ -8,7 +8,7 @@ interface Props {
   weather: WeatherInfo | null
 }
 
-export default function SearchPage({ onClose, weather }: Props) {
+export default function SearchPage({ onClose }: Props) {
   const [cities, setCities]       = useState<WeatherInfo[]>([])
   const [query, setQuery]         = useState('')
   const [loading, setLoading]     = useState(false)
