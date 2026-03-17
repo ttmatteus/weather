@@ -13,7 +13,7 @@ export default function House() {
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        zIndex: 2,
+        zIndex: 1,
       }}
     >
       <img

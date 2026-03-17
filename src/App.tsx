@@ -1,7 +1,11 @@
 import PhoneShell from './components/PhoneShell'
 
 function App() {
-  return <PhoneShell />
+  return (
+    <div style={{ transform: 'scale(0.8)', transformOrigin: 'top center' }}>
+      <PhoneShell />
+    </div>
+  )
 }
 
 export default App

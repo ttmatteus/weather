@@ -11,10 +11,15 @@ function formatTime(date: Date) {
 }
 
 export default function PhoneShell() {
-  const [time, setTime]             = useState(() => formatTime(new Date()))
-  const [weather, setWeather]       = useState<WeatherInfo | null>(null)
-  const [error, setError]           = useState<string | null>(null)
+  const [time, setTime] = useState(() => formatTime(new Date()))
+  const [weather, setWeather] = useState<WeatherInfo | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [sheetOffset, setSheetOffset] = useState(377)
+
+  const CLOSED_OFFSET = 377
+  const progress           = Math.max(0, Math.min(1, (CLOSED_OFFSET - sheetOffset) / CLOSED_OFFSET))
+  const lockedFullyVisible = progress >= 1
 
   useEffect(() => {
     const id = window.setInterval(() => setTime(formatTime(new Date())), 60_000)
@@ -28,94 +33,116 @@ export default function PhoneShell() {
         try {
           const data = await fetchWeatherByCoords(coords.latitude, coords.longitude)
           setWeather(data)
-        } catch (err) {
-          setError('Erro ao buscar clima.')
-          console.error(err)
-        }
+        } catch { setError('Erro ao buscar clima.') }
       },
       () => setError('Permissão de localização negada.')
     )
   }, [])
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[linear-gradient(180deg,#2E335A_0%,#1C1B33_100%)]">
-      <div
-        style={{
-          position: 'relative', width: 398, height: 932,
-          borderRadius: 54,
-          background: 'linear-gradient(145deg, #3a3a3c 0%, #1c1c1e 40%, #2c2c2e 100%)',
-          boxShadow: `0 0 0 1px #555, 0 0 0 2px #222, 4px 8px 24px rgba(0,0,0,0.8), -2px -2px 8px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08)`,
-          flexShrink: 0,
-        }}
-      >
-        {/* Botões laterais */}
-        <div style={{ position: 'absolute', left: -3, top: 160, width: 4, height: 34, borderRadius: '2px 0 0 2px', background: 'linear-gradient(180deg,#4a4a4c,#2a2a2c)', boxShadow: '-1px 0 3px rgba(0,0,0,0.5)' }} />
-        <div style={{ position: 'absolute', left: -3, top: 204, width: 4, height: 64, borderRadius: '2px 0 0 2px', background: 'linear-gradient(180deg,#4a4a4c,#2a2a2c)', boxShadow: '-1px 0 3px rgba(0,0,0,0.5)' }} />
-        <div style={{ position: 'absolute', left: -3, top: 278, width: 4, height: 64, borderRadius: '2px 0 0 2px', background: 'linear-gradient(180deg,#4a4a4c,#2a2a2c)', boxShadow: '-1px 0 3px rgba(0,0,0,0.5)' }} />
-        <div style={{ position: 'absolute', right: -3, top: 220, width: 4, height: 80, borderRadius: '0 2px 2px 0', background: 'linear-gradient(180deg,#4a4a4c,#2a2a2c)', boxShadow: '1px 0 3px rgba(0,0,0,0.5)' }} />
+  const handleDragClose = (dragOffset: number) => {
+    setSheetOffset(dragOffset)
+  }
 
-        {/* Tela */}
-        <div
-          style={{
-            position: 'absolute', top: 4, left: 4, right: 4, bottom: 4,
-            borderRadius: 50, overflow: 'hidden',
-            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)',
-          }}
-        >
-          {/* Dynamic Island */}
-          <div
-            style={{
-              position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
-              width: 126, height: 37, borderRadius: 20, background: '#000',
-              zIndex: 200, boxShadow: '0 2px 8px rgba(0,0,0,0.8)',
-              display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 10,
-            }}
-          >
-            <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'radial-gradient(circle at 35% 35%, #1a3a5c, #0a0a0a)', boxShadow: '0 0 0 1.5px #1a2a3a, inset 0 0 4px rgba(0,0,0,0.8)', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 2, left: 2, width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+      <div style={{
+        position: 'relative', width: 398, height: 932, borderRadius: 54,
+        background: 'linear-gradient(145deg,#3a3a3c 0%,#1c1c1e 40%,#2c2c2e 100%)',
+        boxShadow: '0 0 0 1px #555, 0 0 0 2px #222, 0 20px 50px rgba(0,0,0,0.8)',
+        flexShrink: 0,
+      }}>
+        <div style={{ position: 'absolute', top: 4, left: 4, right: 4, bottom: 4, borderRadius: 50, overflow: 'hidden' }}>
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', width: '200%',
+            transform: searchOpen ? 'translateX(-50%)' : 'translateX(0)',
+            transition: 'transform 0.6s cubic-bezier(0.32,0.72,0,1)',
+          }}>
+            <div style={{ position: 'relative', width: '50%', height: '100%', flexShrink: 0 }}>
+
+              {/* FUNDO */}
+              <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+                <img src="/background.png" style={{
+                  position: 'absolute', inset: 0, width: '100%', height: '100%',
+                  objectFit: 'cover', objectPosition: 'center',
+                  transform: `translateY(${-progress * 100}%)`, willChange: 'transform',
+                  transition: sheetOffset === 0 || sheetOffset === CLOSED_OFFSET ? 'transform 0.5s ease-out' : 'none',
+                }} />
+
+                {/* Background roxo base */}
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(180deg,#3B267B 0%,#2E335A 45%,#1C1B33 100%)',
+                  transform: `translateY(${(1 - progress) * 100}%)`, willChange: 'transform',
+                  transition: sheetOffset === 0 || sheetOffset === CLOSED_OFFSET ? 'transform 0.5s ease-out' : 'none',
+                }} />
+
+                {/* Radial roxo de iluminação — mesma posição/transform do fundo */}
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'radial-gradient(ellipse 80% 35% at 50% 0%, rgba(140,60,255,0.45) 0%, transparent 100%)',
+                  transform: `translateY(${(1 - progress) * 100}%)`, willChange: 'transform',
+                  transition: sheetOffset === 0 || sheetOffset === CLOSED_OFFSET ? 'transform 0.5s ease-out' : 'none',
+                  pointerEvents: 'none',
+                }} />
+
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)' }} />
+              </div>
+
+              {/* SHEET ROXO */}
+              <div style={{
+                position: 'absolute', inset: 0, opacity: progress, zIndex: 41,
+                pointerEvents: lockedFullyVisible ? 'auto' : 'none',
+              }}>
+                <BottomRectangle
+                  hourly={weather?.hourly ?? []}
+                  daily={weather?.daily ?? []}
+                  onSearchOpen={() => setSearchOpen(true)}
+                  offset={0}
+                  setOffset={() => {}}
+                  locked
+                  onDragClose={handleDragClose}
+                  interactiveDrag={false}
+                  interactiveButtons={lockedFullyVisible}
+                />
+              </div>
+
+              {/* SHEET PRINCIPAL */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                opacity: Math.max(0, 1 - progress), zIndex: 40,
+                pointerEvents: lockedFullyVisible ? 'none' : 'auto',
+              }}>
+                <BottomRectangle
+                  hourly={weather?.hourly ?? []}
+                  daily={weather?.daily ?? []}
+                  onSearchOpen={() => setSearchOpen(true)}
+                  offset={sheetOffset}
+                  setOffset={setSheetOffset}
+                  interactiveDrag={true}
+                  interactiveButtons={progress < 1}
+                />
+              </div>
+
+              <Weather weather={weather} error={error} progress={progress} />
+            </div>
+
+            <div style={{ position: 'relative', width: '50%', height: '100%', flexShrink: 0 }}>
+              <SearchPage onClose={() => setSearchOpen(false)} weather={weather} />
             </div>
           </div>
 
-          {/* StatusBar */}
-          <div style={{ position: 'relative', zIndex: 200 }}>
-            <StatusBar time={time} />
-          </div>
-
-          {/* Tela principal */}
           <div style={{
-            position:   'absolute',
-            inset:      0,
-            transform:  searchOpen ? 'translateX(-30%)' : 'translateX(0)',
-            transition: 'transform 0.6s cubic-bezier(0.32,0.72,0,1)',
+            position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',
+            width: 126, height: 37, borderRadius: 20, background: '#000', zIndex: 200,
           }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, #2E335A 0%, #1C1B33 100%)' }} />
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/background.png)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.40)' }} />
             <div style={{
-              position: 'absolute', inset: 0,
-              background: 'rgba(0,0,0,0.5)',
-              opacity: searchOpen ? 1 : 0,
-              transition: searchOpen ? 'opacity 0.6s cubic-bezier(0.32,0.72,0,1)' : 'opacity 0s',
-              zIndex: 30, pointerEvents: 'none',
+              position: 'absolute', right: 10, top: 12, width: 12, height: 12, borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%,#1a3a5c,#0a0a0a)', boxShadow: '0 0 0 1.5px #1a2a3a',
             }} />
-            <Weather weather={weather} error={error} />
-            <BottomRectangle
-              hourly={weather?.hourly ?? []}
-              daily={weather?.daily ?? []}
-              onSearchOpen={() => setSearchOpen(true)}
-            />
           </div>
 
-          {/* SearchPage */}
-          <div style={{
-            position:     'absolute',
-            inset:        0,
-            borderRadius: 50,
-            transform:    searchOpen ? 'translateX(0)' : 'translateX(100%)',
-            transition:   'transform 0.6s cubic-bezier(0.32,0.72,0,1)',
-            zIndex:       50,
-          }}>
-            <SearchPage onClose={() => setSearchOpen(false)} weather={weather} />
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 200 }}>
+            <StatusBar time={time} />
           </div>
         </div>
       </div>
