@@ -105,8 +105,8 @@ export default function Weather({ weather, error, progress }: Props) {
           {/* SEPARADOR "|" */}
           <span style={{ 
             position: 'absolute',
-            left: -20,
-            transform: `translate(${tempMoveX + 70}px, ${tempMoveY}px)`,
+            top: 0,
+            left: "-20px",
             marginLeft: "-2px",
             opacity: separatorOpacity,
             color: 'rgba(235, 235, 245, 0.6)',
