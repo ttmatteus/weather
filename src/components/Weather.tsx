@@ -20,7 +20,7 @@ export default function Weather({ weather, error, progress }: Props) {
   const tempMoveX = progress * -50 
   const tempMoveY = progress * -9;5
   
-  const descMoveX = progress * 45
+  const descMoveX = progress * 55
   const descMoveY = progress * -84.5
 
   const hlOpacity = Math.max(0, 1 - progress * 1.5)
@@ -105,8 +105,8 @@ export default function Weather({ weather, error, progress }: Props) {
           {/* SEPARADOR "|" */}
           <span style={{ 
             position: 'absolute',
-            top: 0,
-            left: "-15px",
+            left: -20,
+            transform: `translate(${tempMoveX + 70}px, ${tempMoveY}px)`,
             marginLeft: "-2px",
             opacity: separatorOpacity,
             color: 'rgba(235, 235, 245, 0.6)',
